@@ -1,15 +1,15 @@
 {
   "extName": {
-    "message": "X浏览器书签同步助手"
+    "message": "RocMarks"
   },
   "extDescription": {
-    "message": "X浏览器专用书签同步工具，支持云端书签双向同步"
+    "message": "书签云端双向同步工具"
   },
   "appTitle": {
-    "message": "X浏览器书签同步"
+    "message": "RocMarks"
   },
   "loginSubtitle": {
-    "message": "本工具为X浏览器专用书签同步助手，如没有账户请"
+    "message": "书签同步助手，如没有X浏览器账户请"
   },
   "registerLink": {
     "message": "下载X浏览器注册"

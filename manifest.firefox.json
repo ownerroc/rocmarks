@@ -1,27 +1,27 @@
 {
   "manifest_version": 2,
   "name": "__MSG_extName__",
-  "version": "1.0.12",
+  "version": "1.2.0",
   "description": "__MSG_extDescription__",
   "default_locale": "en",
-  
+
   "browser_specific_settings": {
     "gecko": {
-      "id": "xbrowser-bookmark-sync@xbext.com",
+      "id": "rocmarks@ivansslo.dev",
       "strict_min_version": "113.0",
       "data_collection_permissions": {
         "required": ["none"]
-        }
+      }
     }
   },
-  
+
   "permissions": [
     "bookmarks",
     "storage",
     "https://www.xbext.com/*",
     "https://en.xbext.com/*"
   ],
-  
+
   "browser_action": {
     "default_popup": "popup.html",
     "default_icon": {
@@ -30,13 +30,13 @@
       "128": "icons/icon128.png"
     }
   },
-  
+
   "icons": {
     "16": "icons/icon16.png",
     "48": "icons/icon48.png",
     "128": "icons/icon128.png"
   },
-  
+
   "background": {
     "scripts": ["background.js"]
   }

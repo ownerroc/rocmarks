@@ -1,33 +1,38 @@
-#!/bin/bash
+#!/usr/bin/env bash
+# Chrome extension packaging (RocMarks)
+# Usage: ./build-chrome.sh [output.zip]
 
-# Chrome 扩展构建脚本
-# 使用方法: ./build-chrome.sh
+set -euo pipefail
 
-echo "🌐 开始构建 Chrome 扩展..."
+OUT="${1:-rocmarks-chrome.zip}"
+# Normalize to an absolute path (relative to the invocation cwd)
+case "$OUT" in /*) ;; *) OUT="$PWD/$OUT";; esac
+STAGE="$(mktemp -d)"
+trap 'rm -rf "$STAGE"' EXIT
 
-# 检查 manifest.chrome.json 或 manifest.chrome.json.backup 是否存在
-if [ -f "manifest.chrome.json.backup" ]; then
-  echo "🔄 恢复 Chrome manifest..."
-  cp manifest.chrome.json.backup manifest.json
-  echo "✅ Chrome 扩展构建完成！"
-elif [ -f "manifest.json" ]; then
-  # 检查当前的 manifest 是否是 Chrome 版本 (Manifest V3)
-  if grep -q '"manifest_version": 3' manifest.json; then
-    echo "✅ 当前已是 Chrome 版本！"
-  else
-    echo "⚠️  当前 manifest.json 不是 Chrome 版本"
-    echo "请确保你有正确的 Chrome manifest 文件"
-    exit 1
-  fi
+echo "==> Packaging RocMarks (Chrome / Manifest V3)..."
+
+# Stage extension sources (no dev/test artifacts)
+cp manifest.json popup.html popup.js background.js browser-polyfill.js config.js styles.css "$STAGE"/
+cp -r _locales icons "$STAGE"/
+
+# Basic sanity checks
+grep -q '"manifest_version": 3' "$STAGE/manifest.json" || { echo "ERROR: manifest.json is not Manifest V3"; exit 1; }
+node --check "$STAGE/popup.js"
+node --check "$STAGE/background.js"
+
+rm -f "$OUT"
+if command -v zip >/dev/null 2>&1; then
+  (cd "$STAGE" && zip -qr "$OUT" .)
 else
-  echo "❌ 错误: 找不到 Chrome manifest 文件"
-  exit 1
+  # Fallback for environments without zip (e.g. Termux)
+  (cd "$STAGE" && OUT_ZIP="$OUT" python3 -c '
+import os, zipfile
+with zipfile.ZipFile(os.environ["OUT_ZIP"], "w", zipfile.ZIP_DEFLATED) as z:
+    for root, dirs, files in os.walk("."):
+        for f in sorted(files):
+            p = os.path.join(root, f)
+            z.write(p, os.path.relpath(p))
+' )
 fi
-
-echo ""
-echo "📝 下一步操作："
-echo "1. 打开 Chrome 浏览器"
-echo "2. 在地址栏输入: chrome://extensions/"
-echo "3. 开启右上角的 '开发者模式'"
-echo "4. 点击 '加载已解压的扩展程序'"
-echo "5. 选择本目录"
+echo "==> OK: $OUT"
