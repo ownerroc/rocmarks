@@ -1,0 +1,47 @@
+name: Build extension packages
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Package Chrome extension (MV3)
+        run: |
+          ./build-chrome.sh "rocmarks-chrome-${GITHUB_REF_NAME}.zip"
+
+      - name: Package Firefox extension (MV2)
+        run: |
+          ./build-firefox.sh "rocmarks-firefox-${GITHUB_REF_NAME}.zip"
+
+      - name: Generate checksums
+        run: |
+          sha256sum rocmarks-*.zip > SHA256SUMS.txt
+          cat SHA256SUMS.txt
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: rocmarks-packages
+          path: |
+            rocmarks-*.zip
+            SHA256SUMS.txt
+
+      - name: Create GitHub release (tags only)
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          generate_release_notes: true
+          files: |
+            rocmarks-*.zip
+            SHA256SUMS.txt
