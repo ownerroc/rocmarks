@@ -1,157 +1,61 @@
-# X浏览器书签同步助手
+# RocMarks
 
 [English](README-en.md) | [中文](README.md)
 
-一个专为X浏览器设计的 Chrome/Firefox 扩展程序，可以运行在任何支持 Chrome/Firefox 扩展的浏览器上，支持本地书签与云端的双向同步。
+RocMarks 是一个双向书签同步扩展（Chrome/Firefox），将本地浏览器书签与您的 XBrowser 云端账户保持同步。可运行在任何支持 Chrome/Firefox 扩展的浏览器上。
+
+> RocMarks 由 Ivan Ssl 维护，是 [xbrowser-bookmark-sync](https://github.com/examplecode/xbrowser-bookmark-sync)（作者 chengkai）的分支，增加了品牌重塑与 CI 打包。
 
 ## 功能特性
 
-极简设计，只提供最基本的书签同步功能，登录X浏览器账户后即可使用。如果你有多个PC浏览器也可以使用X浏览器的账户在多个PC浏览器设备上同步书签。
-
-![alt text](assets/images/chrome-with-xbrowser-bookmark-sync.png)
+- 极简设计：只提供最基本的书签同步功能，登录 XBrowser 账户后即可使用。
+- 多个 PC 浏览器可使用同一 XBrowser 账户同步书签。
 
 ## 浏览器兼容性
 
-✅ **Chrome** 88+  
-✅ **Firefox** 109+  
-✅ **Microsoft Edge** 88+  
+✅ **Chrome** 88+
+✅ **Firefox** 109+
+✅ **Microsoft Edge** 88+
 ✅ **其他基于 Chromium 的浏览器**
 
-> 🦊 **Firefox 用户**: 请查看 [Firefox 构建指南](FIREFOX_BUILD.md) 了解安装说明。
+> 🦊 **Firefox 用户**：请查看 [Firefox 构建指南](FIREFOX_BUILD.md)。
 
 ## 安装说明
 
+### 从 Release 安装（推荐）
 
-### 扩展商店安装
+从 [GitHub Releases](https://github.com/ownerroc/rocmarks/releases) 下载最新构建：
 
-- Chrome浏览器扩展商店安装地址：https://chrome.google.com/webstore/detail/dbccejmmnkoaaffbliocemfkhabmemhe
+- `rocmarks-chrome-<version>.zip` — Chrome/Edge（解包加载，开发者模式）
+- `rocmarks-firefox-<version>.zip` — Firefox（改名为 `.xpi` 或作为临时附加组件加载）
 
-- Edge浏览器扩展商店安装地址：https://microsoftedge.microsoft.com/addons/detail/xbrowser-bookmark-sync/gdbkdcohpokcfaheiojfamnmfoniaeca
-
-- FireFox扩展商店安装地址： https://addons.mozilla.org/en-US/firefox/addon/xbrowser-bookmark-sync/
-   
-
-
-### 从crx文件安装
-
-1. 直接下载[xbrowser-bookmark-sync.crx](https://www.xbext.com/download/xbrowser-bookmark-sync.crx)文件到你本地目录。
-
-
-2. 打开Chrome浏览器，进入扩展程序管理页面
-   - 方法1：在地址栏输入 `chrome://extensions/`
-   - 方法2：菜单 → 更多工具 → 扩展程序
-
-3. 开启右上角的"开发者模式"
-
-4. 从文件管理器拖拽crx文件到扩展程序页面即可完成安装
-
-### 开发模式安装
-
-#### Chrome/Edge 浏览器：
-
-1. 下载本项目项目到本地
+### 从源码安装（手动）
 
 ```bash
-  git clone https://github.com/examplecode/xbrowser-bookmark-sync.git
+git clone https://github.com/ownerroc/rocmarks.git
 ```
-或者直接下载压缩包 [xbrowser-bookmark-sync.zip](https://www.xbext.com/download/xbrowser-bookmark-sync.zip) 释放到本地目录。
 
-2. 打开Chrome浏览器，进入扩展程序管理页面
-   - 方法1：在地址栏输入 `chrome://extensions/`
-   - 方法2：菜单 → 更多工具 → 扩展程序
+然后以解包扩展方式加载该目录：
 
-3. 开启右上角的"开发者模式"
+1. 打开 `chrome://extensions/`
+2. 开启右上角的 **开发者模式**
+3. 点击 **加载已解压的扩展程序**
+4. 选择克隆的目录
 
-4. 点击"加载已解压的扩展程序"
+Firefox：`about:debugging#/runtime/this-firefox` → **临时载入附加组件** → 选择目录内任意文件（详见 [FIREFOX_BUILD.md](FIREFOX_BUILD.md)）。
 
-5. 选择本项目所在文件夹
+## 与上游同步
 
-6. 扩展程序安装完成，点击工具栏图标即可使用
+本分支通过 `upstream` remote 跟踪上游 `examplecode/xbrowser-bookmark-sync`：
 
-#### Firefox 浏览器：
-
-##### 从zip包安装
-
-下载压缩包 [xbrowser-bookmark-sync-firefox.zip](https://www.xbext.com/download/xbrowser-bookmark-sync-firefox.zip) 
-
-
-然后在 Firefox 中：
-1. 在地址栏输入 `about:debugging#/runtime/this-firefox`
-2. 点击"临时载入附加组件"
-3. 选择刚刚下载的 `xbrowser-bookmark-sync-firefox.zip` 文件
-
-#####  从源码安装
 ```bash
-
-  git clone https://github.com/examplecode/xbrowser-bookmark-sync.git
-  cd /path/of/xbrowser-bookmark-sync
-  # 构建 Firefox 版本
-   ./build-firefox.sh
+git remote add upstream https://github.com/examplecode/xbrowser-bookmark-sync.git  # 只需一次
+git fetch upstream
+git merge upstream/main        # 或 rebase
+# 如上游改动了品牌文件，重新应用分支品牌，然后：
+git push origin main
 ```
-
-然后在 Firefox 中：
-1. 在地址栏输入 `about:debugging#/runtime/this-firefox`
-2. 点击"临时载入附加组件"
-3. 选择项目目录下的 `manifest.json` 文件
-
-📖 详细的 Firefox 安装说明请查看 [Firefox 构建指南](FIREFOX_BUILD.md)
-
-
-## 技术栈
-
-- Manifest V3 (Chrome) / V2 (Firefox)
-- Chrome/Firefox Extension APIs
-- Cross-browser Compatibility Layer
-- Chrome Bookmarks API
-- Chrome Storage API
-- Vanilla JavaScript
-- CSS3 渐变与动画
-
-## 文件结构
-```
-├── manifest.json              # Chrome 扩展配置文件 (Manifest V3)
-├── manifest.firefox.json      # Firefox 扩展配置文件 (Manifest V2)
-├── browser-polyfill.js        # 浏览器兼容性适配层
-├── config.js                  # 环境配置
-├── popup.html                 # 弹窗页面
-├── popup.js                   # 主要逻辑
-├── background.js              # 后台服务
-├── styles.css                 # 样式文件
-├── build-firefox.sh           # Firefox 构建脚本
-├── build-chrome.sh            # Chrome 构建脚本
-├── icons/                     # 图标文件夹
-│   ├── icon16.png
-│   ├── icon48.png
-│   ├── icon128.png
-│   └── default-avatar.png
-├── _locales/                  # 多语言支持
-│   ├── zh_CN/
-│   ├── en/
-│   └── en_US/
-└── README.md                  # 说明文档
-```
-
-## 权限说明
-
-- `bookmarks`: 读取和修改浏览器书签
-- `storage`: 存储用户登录信息
-- `host_permissions`: 访问云端API
-
-
-## 开发说明
-
-### 调试
-
-1. 在扩展程序页面点击"检查视图"打开开发者工具
-2. 查看Console中的日志信息
-3. 修改代码后点击刷新按钮重新加载扩展
-
-
 
 ## 许可证
 
-MIT License
-
-## 联系方式
-
-如有问题或建议，请联系X浏览器技术支持。
+MIT — 见 [LICENSE](LICENSE)。上游同样采用 MIT 许可证。

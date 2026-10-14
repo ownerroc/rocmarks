@@ -1,22 +1,23 @@
 {
-  "name": "x-browser-bookmark-sync",
-  "version": "1.0.0",
-  "description": "X浏览器专用书签同步Chrome扩展程序",
+  "name": "rocmarks",
+  "version": "1.2.0",
+  "description": "Two-way bookmark sync browser extension",
   "main": "background.js",
   "scripts": {
     "dev": "node api-server.js",
-    "test": "echo \"扩展程序已创建，请按照INSTALL.md的说明安装到Chrome\""
+    "test": "echo \"Extension packaging is handled by GitHub Actions (see .github/workflows/)\""
   },
   "keywords": [
+    "rocmarks",
     "chrome-extension",
+    "firefox-extension",
     "bookmark-sync",
-    "x-browser",
     "cloud-sync"
   ],
-  "author": "XBrowser Team",
+  "author": "Ivan Ssl",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/xbrowser/bookmark-sync-extension"
+    "url": "https://github.com/ownerroc/rocmarks.git"
   }
 }

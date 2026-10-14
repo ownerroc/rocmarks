@@ -1,12 +1,12 @@
 {
   "extName": {
-    "message": "XBrowser Bookmark Sync"
+    "message": "RocMarks"
   },
   "extDescription": {
-    "message": "Bookmark sync tool for XBrowser, supports two-way cloud bookmark synchronization"
+    "message": "Two-way bookmark sync tool with cloud support"
   },
   "appTitle": {
-    "message": "XBrowser Bookmark Sync"
+    "message": "RocMarks"
   },
   "loginSubtitle": {
     "message": "This tool is designed for XBrowser bookmark synchronization. If you don't have an account, please "

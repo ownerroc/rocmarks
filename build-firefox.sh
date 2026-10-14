@@ -1,32 +1,39 @@
-#!/bin/bash
+#!/usr/bin/env bash
+# Firefox extension packaging (RocMarks, Manifest V2)
+# Usage: ./build-firefox.sh [output.zip]
 
-# Firefox 扩展构建脚本
-# 使用方法: ./build-firefox.sh
+set -euo pipefail
 
-echo "🦊 开始构建 Firefox 扩展..."
+OUT="${1:-rocmarks-firefox.zip}"
+# Normalize to an absolute path (relative to the invocation cwd)
+case "$OUT" in /*) ;; *) OUT="$PWD/$OUT";; esac
+STAGE="$(mktemp -d)"
+trap 'rm -rf "$STAGE"' EXIT
 
-# 检查 manifest.firefox.json 是否存在
-if [ ! -f "manifest.firefox.json" ]; then
-  echo "❌ 错误: manifest.firefox.json 文件不存在"
-  exit 1
+echo "==> Packaging RocMarks (Firefox / Manifest V2)..."
+
+# Stage extension sources, substituting the Firefox manifest
+cp popup.html popup.js background.js browser-polyfill.js config.js styles.css "$STAGE"/
+cp -r _locales icons "$STAGE"/
+cp manifest.firefox.json "$STAGE/manifest.json"
+
+# Basic sanity checks
+grep -q '"manifest_version": 2' "$STAGE/manifest.json" || { echo "ERROR: manifest.firefox.json is not Manifest V2"; exit 1; }
+node --check "$STAGE/popup.js"
+node --check "$STAGE/background.js"
+
+rm -f "$OUT"
+if command -v zip >/dev/null 2>&1; then
+  (cd "$STAGE" && zip -qr "$OUT" .)
+else
+  # Fallback for environments without zip (e.g. Termux)
+  (cd "$STAGE" && OUT_ZIP="$OUT" python3 -c '
+import os, zipfile
+with zipfile.ZipFile(os.environ["OUT_ZIP"], "w", zipfile.ZIP_DEFLATED) as z:
+    for root, dirs, files in os.walk("."):
+        for f in sorted(files):
+            p = os.path.join(root, f)
+            z.write(p, os.path.relpath(p))
+' )
 fi
-
-# 备份当前的 manifest.json (如果存在)
-if [ -f "manifest.json" ]; then
-  echo "📦 备份当前的 manifest.json..."
-  cp manifest.json manifest.chrome.json.backup
-fi
-
-# 使用 Firefox 版本的 manifest
-echo "🔄 使用 Firefox manifest..."
-cp manifest.firefox.json manifest.json
-
-echo "✅ Firefox 扩展构建完成！"
-echo ""
-echo "📝 下一步操作："
-echo "1. 打开 Firefox 浏览器"
-echo "2. 在地址栏输入: about:debugging#/runtime/this-firefox"
-echo "3. 点击 '临时载入附加组件'"
-echo "4. 选择本目录下的 manifest.json 文件"
-echo ""
-echo "💡 提示: 如需恢复 Chrome 版本，请运行: cp manifest.chrome.json.backup manifest.json"
+echo "==> OK: $OUT"
