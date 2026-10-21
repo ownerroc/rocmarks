@@ -90,5 +90,38 @@
   },
   "networkError": {
     "message": "网络错误，请重试"
+  },
+  "customServerToggle": {
+    "message": "自定义服务器"
+  },
+  "serverLabel": {
+    "message": "服务器"
+  },
+  "customServerLabel": {
+    "message": "同步服务器地址"
+  },
+  "customServerPlaceholder": {
+    "message": "https://your-server.example.com"
+  },
+  "customServerSave": {
+    "message": "保存"
+  },
+  "customServerReset": {
+    "message": "使用官方服务器"
+  },
+  "customServerInvalid": {
+    "message": "请输入有效的服务器地址（http/https）"
+  },
+  "customServerPermDenied": {
+    "message": "访问服务器的权限被拒绝"
+  },
+  "customServerSaved": {
+    "message": "服务器已保存，请重新登录"
+  },
+  "customServerResetDone": {
+    "message": "已切换为官方服务器，请重新登录"
+  },
+  "customServerSaveFailed": {
+    "message": "保存失败，请重试"
   }
 }

@@ -12,6 +12,10 @@
     "https://www.xbext.com/*",
     "https://en.xbext.com/*"
   ],
+  "optional_host_permissions": [
+    "http://*/*",
+    "https://*/*"
+  ],
   "action": {
     "default_popup": "popup.html",
     "default_icon": {

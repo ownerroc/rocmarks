@@ -21,6 +21,10 @@
     "https://www.xbext.com/*",
     "https://en.xbext.com/*"
   ],
+  "optional_permissions": [
+    "http://*/*",
+    "https://*/*"
+  ],
 
   "browser_action": {
     "default_popup": "popup.html",

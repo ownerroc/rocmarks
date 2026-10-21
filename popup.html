@@ -32,6 +32,8 @@
       <button id="loginBtn" class="primary-btn" data-i18n="loginButton">Log in</button>
 
       <div id="loginStatus" class="status-message"></div>
+
+      <button id="customServerToggle" class="settings-toggle" data-i18n="customServerToggle">Custom server</button>
     </div>
   </div>
 
@@ -46,6 +48,10 @@
         </svg>
         <span id="bookmarkCount">0</span> <span data-i18n="bookmarkCount">bookmarks</span>
       </div>
+
+      <button id="serverLine" class="server-line">
+        <span data-i18n="serverLabel">Server</span>: <span id="serverValue">—</span>
+      </button>
     </div>
 
     <div class="divider"></div>
@@ -84,6 +90,22 @@
         </svg>
         <span data-i18n="logout">Log out</span>
       </button>
+    </div>
+  </div>
+
+  <!-- Custom server settings (shared, outside the switchable views) -->
+  <div class="server-settings">
+    <div id="customServerPanel" class="custom-server-panel hidden">
+      <div class="input-group">
+        <label for="customServerInput" data-i18n="customServerLabel">Sync server address</label>
+        <input type="text" id="customServerInput" data-i18n-placeholder="customServerPlaceholder" placeholder="https://your-server.example.com" spellcheck="false" autocomplete="off">
+      </div>
+      <div class="custom-server-actions">
+        <button id="customServerSaveBtn" class="mini-btn primary" data-i18n="customServerSave">Save</button>
+        <button id="customServerResetBtn" class="mini-btn" data-i18n="customServerReset">Use official server</button>
+      </div>
+      <div id="customServerStatus" class="status-message"></div>
+      <p class="settings-hint" data-i18n="customServerHint">Point RocMarks at a self-hosted sync server (see SELF_HOSTED.md). Switching servers logs you out.</p>
     </div>
   </div>
 

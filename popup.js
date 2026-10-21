@@ -1,12 +1,15 @@
 // 全局状态
 let currentUser = null;
 let apiToken = null;
+let currentServer = null;
 
 // 使用兼容性 API（支持 Chrome 和 Firefox）
 const chromeAPI = typeof browserAPI !== 'undefined' ? browserAPI : chrome;
 
-// API配置 - 从 config.js 获取
-const API_BASE_URL = getApiBaseUrl();
+// API配置 - 从 config.js 获取（自定义服务器优先，需异步解析）
+function apiBase() {
+  return currentServer || getApiBaseUrl();
+}
 
 // DOM元素
 const loginView = document.getElementById('loginView');
@@ -22,10 +25,21 @@ const uploadBtn = document.getElementById('uploadBtn');
 const downloadBtn = document.getElementById('downloadBtn');
 const syncStatus = document.getElementById('syncStatus');
 const logoutBtn = document.getElementById('logoutBtn');
+const customServerToggle = document.getElementById('customServerToggle');
+const customServerPanel = document.getElementById('customServerPanel');
+const customServerInput = document.getElementById('customServerInput');
+const customServerSaveBtn = document.getElementById('customServerSaveBtn');
+const customServerResetBtn = document.getElementById('customServerResetBtn');
+const customServerStatus = document.getElementById('customServerStatus');
+const serverLine = document.getElementById('serverLine');
+const serverValue = document.getElementById('serverValue');
 
 // 初始化
 document.addEventListener('DOMContentLoaded', async () => {
   initI18n();
+  currentServer = await resolveApiBaseUrl();
+  updateServerLine();
+  renderCustomServerField();
   await checkLoginStatus();
   updateBookmarkCount();
 });
@@ -145,7 +159,7 @@ async function handleLogin(username, password) {
     showStatus(loginStatus, chromeAPI.i18n.getMessage('loggingIn'), 'loading');
     
     // 调用登录API
-    const response = await fetch(`${API_BASE_URL}/api/auth`, {
+    const response = await fetch(`${apiBase()}/api/auth`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -236,7 +250,7 @@ uploadBtn.addEventListener('click', async () => {
       : [];
     
     // 上传到服务器
-    const response = await fetch(`${API_BASE_URL}/api/bookmark_upload`, {
+    const response = await fetch(`${apiBase()}/api/bookmark_upload`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -291,7 +305,7 @@ downloadBtn.addEventListener('click', async () => {
     showStatus(syncStatus, chromeAPI.i18n.getMessage('syncingFromCloud'), 'loading');
     
     // 从服务器获取书签
-    const response = await fetch(`${API_BASE_URL}/api/bookmark_download`, {
+    const response = await fetch(`${apiBase()}/api/bookmark_download`, {
       method: 'GET',
       headers: {
         'Authorization': `Bearer ${apiToken}`,
@@ -585,6 +599,148 @@ async function handleLogout() {
     console.error('退出登录失败:', error);
   }
 }
+
+// ========== 自定义服务器 ==========
+
+// 请求访问自定义服务器所需的 optional host permission
+function requestOriginPermission(origin) {
+  return new Promise((resolve) => {
+    const raw = typeof browser !== 'undefined' && browser.permissions ? browser.permissions : (chrome.permissions || null);
+    if (!raw || !raw.request) {
+      // API 不可用时视为成功（fetch 阶段会给出明确错误）
+      resolve(true);
+      return;
+    }
+    raw.request({ origins: [origin + '/*'] }, (granted) => {
+      void chrome.runtime.lastError;
+      resolve(!!granted);
+    });
+  });
+}
+
+// 释放不再需要的 optional host permission
+function releaseOriginPermission(origin) {
+  return new Promise((resolve) => {
+    const raw = typeof browser !== 'undefined' && browser.permissions ? browser.permissions : (chrome.permissions || null);
+    if (!raw || !raw.remove) {
+      resolve(false);
+      return;
+    }
+    raw.remove({ origins: [origin + '/*'] }, (removed) => {
+      void chrome.runtime.lastError;
+      resolve(!!removed);
+    });
+  });
+}
+
+// 更新主界面的服务器显示
+function updateServerLine() {
+  if (!serverValue || !serverLine) return;
+  serverValue.textContent = currentServer || '—';
+}
+
+// 将当前自定义服务器填入设置面板输入框（未配置时留空）
+async function renderCustomServerField() {
+  if (!customServerInput) return;
+  const custom = await getCustomApiUrl();
+  customServerInput.value = custom || '';
+}
+
+// 折叠/展开自定义服务器面板
+function toggleCustomServerPanel() {
+  if (!customServerPanel) return;
+  customServerPanel.classList.toggle('hidden');
+  if (!customServerPanel.classList.contains('hidden')) {
+    renderCustomServerField();
+  }
+}
+
+customServerToggle.addEventListener('click', () => {
+  toggleCustomServerPanel();
+});
+
+serverLine.addEventListener('click', () => {
+  toggleCustomServerPanel();
+  if (!customServerPanel.classList.contains('hidden')) {
+    customServerPanel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+});
+
+// 保存自定义服务器
+customServerSaveBtn.addEventListener('click', async () => {
+  const normalized = normalizeApiUrl(customServerInput.value);
+  if (!normalized) {
+    showStatus(customServerStatus, chromeAPI.i18n.getMessage('customServerInvalid'), 'error');
+    return;
+  }
+
+  const previous = await getCustomApiUrl();
+  if (normalized === previous) {
+    showStatus(customServerStatus, chromeAPI.i18n.getMessage('customServerSaved'), 'success');
+    return;
+  }
+
+  // 先请求主机权限（保存按钮点击 = 用户手势）
+  const granted = await requestOriginPermission(normalized);
+  if (!granted) {
+    showStatus(customServerStatus, chromeAPI.i18n.getMessage('customServerPermDenied'), 'error');
+    return;
+  }
+
+  try {
+    customServerSaveBtn.disabled = true;
+    await chromeAPI.storage.local.set({ [CUSTOM_API_URL_KEY]: normalized });
+    currentServer = normalized;
+    updateServerLine();
+
+    // 释放旧自定义服务器的权限（如有）
+    if (previous && previous !== normalized) {
+      await releaseOriginPermission(previous);
+    }
+
+    // 服务器已变更：旧 token 对新服务器无效，清除会话
+    await chromeAPI.storage.local.remove(['apiToken', 'userInfo']);
+    apiToken = null;
+    currentUser = null;
+    showLoginView();
+
+    showStatus(customServerStatus, chromeAPI.i18n.getMessage('customServerSaved'), 'success');
+  } catch (error) {
+    console.error('保存自定义服务器失败:', error);
+    showStatus(customServerStatus, chromeAPI.i18n.getMessage('customServerSaveFailed'), 'error');
+  } finally {
+    customServerSaveBtn.disabled = false;
+  }
+});
+
+// 恢复官方服务器
+customServerResetBtn.addEventListener('click', async () => {
+  try {
+    customServerResetBtn.disabled = true;
+    const previous = await getCustomApiUrl();
+    await chromeAPI.storage.local.remove(CUSTOM_API_URL_KEY);
+    customServerInput.value = '';
+    currentServer = getApiBaseUrl();
+    updateServerLine();
+
+    if (previous) {
+      await releaseOriginPermission(previous);
+    }
+
+    // 服务器已变更：清除会话
+    await chromeAPI.storage.local.remove(['apiToken', 'userInfo']);
+    apiToken = null;
+    currentUser = null;
+    showLoginView();
+
+    showStatus(customServerStatus, chromeAPI.i18n.getMessage('customServerResetDone'), 'success');
+  } catch (error) {
+    console.error('恢复官方服务器失败:', error);
+    showStatus(customServerStatus, chromeAPI.i18n.getMessage('customServerSaveFailed'), 'error');
+  } finally {
+    customServerResetBtn.disabled = false;
+  }
+});
 
 // 显示状态消息
 function showStatus(element, message, type) {

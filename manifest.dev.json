@@ -13,6 +13,10 @@
     "https://en.xbext.com/*",
     "http://localhost:3000/*"
   ],
+  "optional_host_permissions": [
+    "http://*/*",
+    "https://*/*"
+  ],
   "action": {
     "default_popup": "popup.html",
     "default_icon": {

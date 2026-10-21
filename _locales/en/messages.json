@@ -90,5 +90,38 @@
   },
   "networkError": {
     "message": "Network error, please try again"
+  },
+  "customServerToggle": {
+    "message": "Custom server"
+  },
+  "serverLabel": {
+    "message": "Server"
+  },
+  "customServerLabel": {
+    "message": "Sync server address"
+  },
+  "customServerPlaceholder": {
+    "message": "https://your-server.example.com"
+  },
+  "customServerSave": {
+    "message": "Save"
+  },
+  "customServerReset": {
+    "message": "Use official server"
+  },
+  "customServerInvalid": {
+    "message": "Please enter a valid server address (http/https)"
+  },
+  "customServerPermDenied": {
+    "message": "Permission to access the server was denied"
+  },
+  "customServerSaved": {
+    "message": "Server saved. Please log in again."
+  },
+  "customServerResetDone": {
+    "message": "Switched to the official server. Please log in again."
+  },
+  "customServerSaveFailed": {
+    "message": "Could not save the server setting, please try again"
   }
 }
