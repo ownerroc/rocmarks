@@ -1,28 +1,39 @@
 /**
  * X浏览器书签同步API模拟服务器
  * 用于开发测试，实际部署时需要替换为真实的后端服务
+ *
+ * 模拟账号通过环境变量注入，源码中不存在任何内置账号：
+ *   ROCMARKS_MOCK_USER  逗号分隔的用户名列表，如 alice,bob
+ *   ROCMARKS_MOCK_PASS  逗号分隔的密码列表，与用户名一一对应
+ * 示例：ROCMARKS_MOCK_USER=alice ROCMARKS_MOCK_PASS=secret node api-server.js
  */
 
 const http = require('http');
 const url = require('url');
 
-// 模拟用户数据库
-const users = new Map([
-  ['testuser', {
-    username: 'testuser',
-    password: '***REMOVED***',
-    nickname: '测试用户',
-    avatar: 'https://ui-avatars.com/api/?name=Test+User&background=667eea&color=fff',
-    userId: 'user_001',
-  }],
-  ['admin', {
-    username: 'admin',
-    password: '***REMOVED***',
-    nickname: '管理员',
-    avatar: 'https://ui-avatars.com/api/?name=Admin&background=764ba2&color=fff',
-    userId: 'user_002',
-  }],
-]);
+// 模拟用户数据库 — 由环境变量构建
+function loadMockUsers() {
+  const usernames = (process.env.ROCMARKS_MOCK_USER || '')
+    .split(',').map(s => s.trim()).filter(Boolean);
+  const passwords = (process.env.ROCMARKS_MOCK_PASS || '')
+    .split(',').map(s => s.trim()).filter(Boolean);
+  const users = new Map();
+  usernames.forEach((username, i) => {
+    if (!passwords[i]) {
+      console.warn(`警告: 用户 ${username} 没有对应的密码（ROCMARKS_MOCK_PASS 第 ${i + 1} 项为空），已跳过`);
+      return;
+    }
+    users.set(username, {
+      username,
+      password: passwords[i],
+      nickname: username,
+      avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(username)}&background=667eea&color=fff`,
+      userId: `user_${String(i + 1).padStart(3, '0')}`,
+    });
+  });
+  return users;
+}
+const users = loadMockUsers();
 
 // 模拟书签存储
 const bookmarkStorage = new Map();
@@ -193,18 +204,13 @@ const server = http.createServer((req, res) => {
     <div class="section">
       <h2>📋 测试账号</h2>
       <div class="accounts">
-        <div class="account">
-          <span class="label">用户名:</span>
-          <span class="value">testuser</span>
-          <span class="label">密码:</span>
-          <span class="value">***REMOVED***</span>
-        </div>
-        <div class="account">
-          <span class="label">用户名:</span>
-          <span class="value">admin</span>
-          <span class="label">密码:</span>
-          <span class="value">***REMOVED***</span>
-        </div>
+        <p style="color:#666;line-height:1.8;">
+          本服务器没有内置账号。启动前通过环境变量创建模拟账号：<br>
+          <code>ROCMARKS_MOCK_USER</code>（逗号分隔的用户名）与
+          <code>ROCMARKS_MOCK_PASS</code>（逗号分隔的密码，一一对应）<br>
+          示例：<code>ROCMARKS_MOCK_USER=alice ROCMARKS_MOCK_PASS=secret node api-server.js</code><br>
+          当前已加载账号数: ${users.size}
+        </p>
       </div>
     </div>
 
@@ -243,7 +249,7 @@ const server = http.createServer((req, res) => {
       <p style="line-height: 1.8; color: #666;">
         1. 确保Chrome扩展已安装并配置了正确的API地址<br>
         2. 点击扩展图标打开弹窗<br>
-        3. 使用上述测试账号登录<br>
+        3. 使用通过环境变量配置的测试账号登录<br>
         4. 开始使用书签同步功能
       </p>
     </div>
@@ -252,9 +258,9 @@ const server = http.createServer((req, res) => {
       <h2>🔧 测试接口</h2>
       <p style="color: #666; margin-bottom: 10px;">使用 curl 测试登录接口：</p>
       <code style="display: block; padding: 15px; background: #2d2d2d; color: #f8f8f2; border-radius: 8px; overflow-x: auto;">
-curl -X POST http://localhost:3000/auth/login \\<br>
+curl -X POST http://localhost:3000/api/auth \\<br>
 &nbsp;&nbsp;-H "Content-Type: application/json" \\<br>
-&nbsp;&nbsp;-d '{"username":"testuser","password":"***REMOVED***"}'
+&nbsp;&nbsp;-d '{"username":"<ROCMARKS_MOCK_USER>","password":"<ROCMARKS_MOCK_PASS>"}'
       </code>
     </div>
 
@@ -398,16 +404,18 @@ function countBookmarks(nodes) {
   return count;
 }
 
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
   console.log('='.repeat(60));
   console.log('X浏览器书签同步API模拟服务器');
   console.log('='.repeat(60));
   console.log(`服务器运行在: http://localhost:${PORT}`);
   console.log('');
-  console.log('测试账号：');
-  console.log('  用户名: testuser  密码: ***REMOVED***');
-  console.log('  用户名: admin     密码: ***REMOVED***');
+  console.log(`模拟账号数: ${users.size}（通过 ROCMARKS_MOCK_USER / ROCMARKS_MOCK_PASS 环境变量配置）`);
+  if (users.size === 0) {
+    console.log('提示: 未配置任何账号，登录接口将始终返回 401。');
+    console.log('      示例: ROCMARKS_MOCK_USER=alice ROCMARKS_MOCK_PASS=secret node api-server.js');
+  }
   console.log('');
   console.log('可用接口：');
   console.log('  POST   /api/auth              - 用户登录');
