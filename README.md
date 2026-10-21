@@ -10,6 +10,7 @@ RocMarks 是一个双向书签同步扩展（Chrome/Firefox），将本地浏览
 
 - 极简设计：只提供最基本的书签同步功能，登录 XBrowser 账户后即可使用。
 - 多个 PC 浏览器可使用同一 XBrowser 账户同步书签。
+- 自定义同步服务器：可指向自托管服务器（[SELF_HOSTED.md](SELF_HOSTED.md)），也可继续使用 XBrowser 官方云端。
 
 ## 浏览器兼容性
 

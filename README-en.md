@@ -10,6 +10,7 @@ RocMarks is a two-way bookmark sync extension (Chrome/Firefox) that keeps local 
 
 - Minimalist design: only the essential bookmark sync functionality. Log in with your XBrowser account and start syncing.
 - Works across multiple PC browsers using the same XBrowser account.
+- Custom sync server: point RocMarks at your own self-hosted server ([SELF_HOSTED.md](SELF_HOSTED.md)) or the official XBrowser cloud.
 
 ## Browser compatibility
 
